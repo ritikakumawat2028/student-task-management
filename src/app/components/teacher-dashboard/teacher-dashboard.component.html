@@ -1,0 +1,506 @@
+<div class="teacher-dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="icon-container">
+          <mat-icon>school</mat-icon>
+        </div>
+        <div class="header-text">
+          <h1>Teacher Dashboard</h1>
+          <p>Welcome back, {{ currentUser?.name }}</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-button class="profile-btn" (click)="viewProfile()">
+          <mat-icon>account_circle</mat-icon>
+          Profile
+        </button>
+        <button mat-button class="logout-btn" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card purple">
+        <div class="stat-content">
+          <div class="stat-text">
+            <span class="stat-label">My Classes</span>
+            <span class="stat-value">{{ myClasses.length }}</span>
+          </div>
+          <div class="stat-icon">
+            <mat-icon>menu_book</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card blue">
+        <div class="stat-content">
+          <div class="stat-text">
+            <span class="stat-label">Assignments</span>
+            <span class="stat-value">{{ myAssignments.length }}</span>
+          </div>
+          <div class="stat-icon">
+            <mat-icon>assignment</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card orange">
+        <div class="stat-content">
+          <div class="stat-text">
+            <span class="stat-label">Pending Review</span>
+            <span class="stat-value">{{ pendingSubmissions.length }}</span>
+          </div>
+          <div class="stat-icon">
+            <mat-icon>schedule</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card green">
+        <div class="stat-content">
+          <div class="stat-text">
+            <span class="stat-label">Graded</span>
+            <span class="stat-value">{{ gradedSubmissions.length }}</span>
+          </div>
+          <div class="stat-icon">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-btn" [class.active]="activeTab === 'assignments'" (click)="activeTab = 'assignments'">
+        <mat-icon>assignment</mat-icon>
+        Assignments
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'submissions'" (click)="activeTab = 'submissions'">
+        <mat-icon>description</mat-icon>
+        Submissions
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'announcements'" (click)="activeTab = 'announcements'">
+        <mat-icon>campaign</mat-icon>
+        Announcements
+      </button>
+    </div>
+
+    <!-- Assignments Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'assignments'">
+      <div class="content-header">
+        <div>
+          <h2>My Assignments</h2>
+          <p>Create and manage assignments for your classes</p>
+        </div>
+        <div class="header-actions">
+          <mat-form-field class="search-field" appearance="outline">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput placeholder="Search assignments..." [(ngModel)]="searchAssignments">
+          </mat-form-field>
+          <button mat-raised-button color="primary" class="create-btn" (click)="openCreateAssignmentDialog()" [disabled]="myClasses.length === 0">
+            <mat-icon>add</mat-icon>
+            Create Assignment
+          </button>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <div *ngIf="myAssignments.length === 0" class="empty-state">
+          <mat-icon>assignment</mat-icon>
+          <p>No assignments created yet</p>
+          <button mat-raised-button color="primary" (click)="openCreateAssignmentDialog()" [disabled]="myClasses.length === 0">
+            <mat-icon>add</mat-icon>
+            Create Your First Assignment
+          </button>
+        </div>
+
+        <div *ngFor="let assignment of getFilteredAssignments()" class="assignment-card">
+          <div class="assignment-header">
+            <h3>{{ assignment.title }}</h3>
+            <div class="assignment-actions">
+              <button mat-icon-button (click)="editAssignment(assignment)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteAssignment(assignment.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+          <p class="assignment-description">{{ assignment.description }}</p>
+          <div class="assignment-meta">
+            <span class="meta-chip">
+              <mat-icon>class</mat-icon>
+              {{ getClassName(assignment.classId) }}
+            </span>
+            <span class="meta-chip" [class.overdue]="isOverdue(assignment.dueDate)">
+              <mat-icon>schedule</mat-icon>
+              Due: {{ assignment.dueDate | date:'MMM d, y h:mm a' }}
+            </span>
+            <span class="meta-chip">
+              <mat-icon>assignment_turned_in</mat-icon>
+              {{ getSubmissionCount(assignment.id) }} submissions
+            </span>
+            <span *ngIf="assignment.fileUrl" class="meta-chip file-attached">
+              <mat-icon>attach_file</mat-icon>
+              File attached
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submissions Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'submissions'">
+      <div class="content-header">
+        <div>
+          <h2>Student Submissions</h2>
+          <p>Review and grade student work</p>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <div *ngIf="allSubmissions.length === 0" class="empty-state">
+          <mat-icon>description</mat-icon>
+          <p>No submissions yet</p>
+        </div>
+
+        <div *ngFor="let submission of allSubmissions" class="submission-card">
+          <div class="submission-header">
+            <div>
+              <h3>{{ getAssignmentTitle(submission.assignmentId) }}</h3>
+              <p class="student-name">{{ getStudentName(submission.studentId) }}</p>
+            </div>
+            <span class="status-badge" [ngClass]="getSubmissionBadgeClass(submission.status)">
+              {{ submission.status }}
+            </span>
+          </div>
+          
+          <div class="submission-content">
+            <p><strong>Answer:</strong></p>
+            <p class="submission-text">{{ submission.content }}</p>
+            <p class="submission-date">Submitted: {{ submission.submittedAt | date:'MMM d, y h:mm a' }}</p>
+          </div>
+
+          <div *ngIf="submission.status === 'graded'" class="graded-section">
+            <div class="grade-display">
+              <mat-icon>grade</mat-icon>
+              <span class="grade-value">{{ submission.marks }}/100</span>
+            </div>
+            <p><strong>Feedback:</strong> {{ submission.feedback }}</p>
+          </div>
+
+          <div *ngIf="submission.status !== 'graded'" class="grading-section">
+            <h4>Grade Submission</h4>
+            <div class="grading-form">
+              <mat-form-field appearance="outline" class="marks-field">
+                <mat-label>Marks (out of 100)</mat-label>
+                <input matInput type="number" min="0" max="100" [(ngModel)]="gradeForm[submission.id].marks" placeholder="0-100">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="feedback-field">
+                <mat-label>Feedback</mat-label>
+                <textarea matInput rows="3" [(ngModel)]="gradeForm[submission.id].feedback" placeholder="Provide feedback to the student..."></textarea>
+              </mat-form-field>
+              <button mat-raised-button color="primary" (click)="gradeSubmission(submission.id)">
+                <mat-icon>check_circle</mat-icon>
+                Submit Grade
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcements Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'announcements'">
+      <div class="content-header">
+        <div>
+          <h2>Announcements</h2>
+          <p>Send announcements to your classes</p>
+        </div>
+        <button mat-raised-button color="primary" class="create-btn" (click)="openCreateAnnouncementDialog()" [disabled]="myClasses.length === 0">
+          <mat-icon>add</mat-icon>
+          New Announcement
+        </button>
+      </div>
+
+      <div class="content-body">
+        <div *ngIf="myAnnouncements.length === 0" class="empty-state">
+          <mat-icon>campaign</mat-icon>
+          <p>No announcements yet</p>
+          <button mat-raised-button color="primary" (click)="openCreateAnnouncementDialog()" [disabled]="myClasses.length === 0">
+            <mat-icon>add</mat-icon>
+            Create First Announcement
+          </button>
+        </div>
+
+        <div *ngFor="let announcement of myAnnouncements" class="announcement-card">
+          <div class="announcement-header">
+            <h3>{{ announcement.title }}</h3>
+            <div class="announcement-actions">
+              <button mat-icon-button (click)="editAnnouncement(announcement)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteAnnouncement(announcement.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+          <p class="announcement-content">{{ announcement.content }}</p>
+          <div class="announcement-meta">
+            <span class="meta-chip">
+              <mat-icon>schedule</mat-icon>
+              {{ announcement.createdAt | date:'MMM d, y h:mm a' }}
+            </span>
+            <span class="meta-chip">
+              <mat-icon>visibility</mat-icon>
+              {{ announcement.targetType === 'all' ? 'All Students' : announcement.targetType === 'class' ? 'Specific Classes' : 'Specific Students' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Assignment Dialog -->
+<div class="dialog-overlay" *ngIf="showAssignmentDialog" (click)="cancelAssignmentDialog()">
+  <div class="dialog-content large-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>{{ editingAssignment ? 'Edit Assignment' : 'Create New Assignment' }}</h2>
+      <button mat-icon-button (click)="cancelAssignmentDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <p>Fill in the details for the {{ editingAssignment ? 'assignment' : 'new assignment' }}</p>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Assignment Title</mat-label>
+        <input matInput [(ngModel)]="assignmentForm.title" placeholder="e.g., Chapter 5 Homework">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea matInput rows="4" [(ngModel)]="assignmentForm.description" placeholder="Describe the assignment requirements..."></textarea>
+      </mat-form-field>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Select Class</mat-label>
+          <mat-select [(ngModel)]="assignmentForm.classId">
+            <mat-option *ngFor="let class of myClasses" [value]="class.id">
+              {{ class.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Due Date</mat-label>
+          <input matInput type="datetime-local" [(ngModel)]="assignmentForm.dueDate">
+        </mat-form-field>
+      </div>
+      <div class="file-upload-section">
+        <label class="file-upload-label">
+          <input type="file" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.txt,.jpg,.png" hidden #fileInput>
+          <button mat-stroked-button type="button" (click)="fileInput.click()">
+            <mat-icon>attach_file</mat-icon>
+            {{ selectedFile ? selectedFile.name : 'Attach File (Optional)' }}
+          </button>
+        </label>
+        <p class="file-hint">Supported: PDF, DOC, DOCX, TXT, JPG, PNG</p>
+        <p *ngIf="assignmentForm.fileUrl && !selectedFile" class="current-file">
+          <mat-icon>description</mat-icon>
+          Current file attached
+        </p>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button mat-raised-button (click)="cancelAssignmentDialog()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="confirmAssignmentDialog()">
+        {{ editingAssignment ? 'Save Changes' : 'Create Assignment' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Announcement Dialog -->
+<div class="dialog-overlay" *ngIf="showAnnouncementDialog" (click)="cancelAnnouncementDialog()">
+  <div class="dialog-content large-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>{{ editingAnnouncement ? 'Edit Announcement' : 'Create Announcement' }}</h2>
+      <button mat-icon-button (click)="cancelAnnouncementDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <p>Send an announcement to your classes or students</p>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Title</mat-label>
+        <input matInput [(ngModel)]="announcementForm.title" placeholder="Announcement title">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Content</mat-label>
+        <textarea matInput rows="5" [(ngModel)]="announcementForm.content" placeholder="Write your announcement..."></textarea>
+      </mat-form-field>
+      <div class="send-to-section">
+        <label class="section-label">Send To:</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="targetType" value="all" [(ngModel)]="announcementForm.targetType">
+            <span>All My Classes</span>
+            <p class="radio-description">Send to all students in your classes</p>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="targetType" value="class" [(ngModel)]="announcementForm.targetType">
+            <span>Specific Classes</span>
+            <p class="radio-description">Choose which classes to send to</p>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="targetType" value="specific" [(ngModel)]="announcementForm.targetType">
+            <span>Specific Students</span>
+            <p class="radio-description">Choose individual students</p>
+          </label>
+        </div>
+        <div *ngIf="announcementForm.targetType === 'class'" class="class-selection">
+          <label *ngFor="let class of myClasses" class="checkbox-label">
+            <input type="checkbox" [checked]="selectedClassIds.includes(class.id)" (change)="toggleClassSelection(class.id)">
+            <span>{{ class.name }}</span>
+          </label>
+        </div>
+        <div *ngIf="announcementForm.targetType === 'specific'" class="student-selection">
+          <label *ngFor="let student of getMyStudents()" class="checkbox-label">
+            <input type="checkbox" [checked]="selectedStudentIds.includes(student.id)" (change)="toggleStudentSelection(student.id)">
+            <div class="student-info-inline">
+              <span class="student-name-inline">{{ student.name }}</span>
+              <span class="student-email-inline">{{ student.email }}</span>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button mat-raised-button (click)="cancelAnnouncementDialog()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="confirmAnnouncementDialog()">
+        {{ editingAnnouncement ? 'Save Changes' : 'Send Announcement' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Dialog -->
+<div class="dialog-overlay" *ngIf="showProfileDialog" (click)="cancelProfileDialog()">
+  <div class="dialog-content profile-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>My Profile</h2>
+      <button mat-icon-button (click)="cancelProfileDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="dialog-body scrollable-dialog-body">
+      <!-- Profile Header -->
+      <div class="profile-header-section">
+        <div class="profile-avatar-large">
+          <mat-icon>account_circle</mat-icon>
+        </div>
+        <div class="profile-header-info">
+          <h3>{{ currentUser?.name }}</h3>
+          <p class="profile-role-badge">
+            <mat-icon>school</mat-icon>
+            Teacher
+          </p>
+          <p class="profile-email">{{ currentUser?.email }}</p>
+        </div>
+      </div>
+
+      <!-- Profile Form -->
+      <div class="profile-form-section">
+        <h4 class="section-title">
+          <mat-icon>person</mat-icon>
+          Editable Information
+        </h4>
+        
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Full Name</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input matInput [(ngModel)]="profileForm.name" placeholder="Enter your name">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="profile-form-section read-only-section">
+        <h4 class="section-title">
+          <mat-icon>lock</mat-icon>
+          Profile Information (Read-Only)
+        </h4>
+        
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email Address</mat-label>
+            <mat-icon matPrefix>email</mat-icon>
+            <input matInput type="email" [(ngModel)]="profileForm.email" placeholder="Enter your email" disabled>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Department</mat-label>
+            <mat-icon matPrefix>business</mat-icon>
+            <input matInput [(ngModel)]="profileForm.department" placeholder="e.g., Computer Science" disabled>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Password Section -->
+      <div class="password-section">
+        <div class="password-header" (click)="togglePasswordSection()">
+          <h4 class="section-title">
+            <mat-icon>lock</mat-icon>
+            Change Password
+          </h4>
+          <mat-icon class="expand-icon" [class.expanded]="showPasswordSection">
+            {{ showPasswordSection ? 'expand_less' : 'expand_more' }}
+          </mat-icon>
+        </div>
+
+        <div class="password-form" *ngIf="showPasswordSection">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Current Password</mat-label>
+            <mat-icon matPrefix>lock_outline</mat-icon>
+            <input matInput type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="Enter current password">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>New Password</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput type="password" [(ngModel)]="passwordForm.newPassword" placeholder="Enter new password">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Confirm New Password</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Confirm new password">
+          </mat-form-field>
+
+          <button mat-raised-button color="accent" class="change-password-btn" (click)="changePassword()">
+            <mat-icon>vpn_key</mat-icon>
+            Update Password
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-footer">
+      <button mat-raised-button (click)="cancelProfileDialog()">
+        <mat-icon>close</mat-icon>
+        Cancel
+      </button>
+      <button mat-raised-button color="primary" (click)="confirmProfileDialog()">
+        <mat-icon>save</mat-icon>
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>

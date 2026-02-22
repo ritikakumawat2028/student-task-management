@@ -1,0 +1,160 @@
+<div class="min-h-screen bg-gradient">
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-content">
+        <div class="logo">
+          <div class="logo-icon">🎓</div>
+          <span class="logo-text">EduTask Manager</span>
+        </div>
+        <div class="nav-buttons">
+          <button mat-stroked-button (click)="navigateToLogin()">Sign In</button>
+          <button mat-raised-button color="primary" (click)="navigateToRegister()">Get Started</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">Complete Student Task Management System</h1>
+        <p class="hero-description">
+          Streamline assignments, submissions, and communication between teachers and students with our comprehensive education platform.
+        </p>
+        <div class="hero-buttons">
+          <button mat-raised-button color="primary" (click)="navigateToRegister()" class="btn-large">
+            Register Now
+          </button>
+          <button mat-stroked-button (click)="navigateToLogin()" class="btn-large">
+            Sign In
+          </button>
+        </div>
+      </div>
+
+      <!-- Features Grid -->
+      <div class="features-grid">
+        <mat-card class="feature-card">
+          <mat-card-header>
+            <div class="feature-icon blue">👥</div>
+          </mat-card-header>
+          <mat-card-content>
+            <h3>Role-Based Access</h3>
+            <p>Separate dashboards for Admin, Teachers, and Students with secure permissions</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="feature-card">
+          <mat-card-header>
+            <div class="feature-icon purple">📝</div>
+          </mat-card-header>
+          <mat-card-content>
+            <h3>Assignment Management</h3>
+            <p>Create, submit, and grade assignments with file upload support and deadline tracking</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="feature-card">
+          <mat-card-header>
+            <div class="feature-icon green">🔔</div>
+          </mat-card-header>
+          <mat-card-content>
+            <h3>Real-Time Announcements</h3>
+            <p>Teachers can send announcements to all classes or specific students instantly</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- User Roles Section -->
+      <div class="roles-section">
+        <h2 class="section-title">Built for Every Role</h2>
+        <div class="roles-grid">
+          <mat-card class="role-card admin">
+            <mat-card-header>
+              <mat-card-title>
+                <div class="role-icon">👨‍💼</div>
+                Admin
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <ul class="role-features">
+                <li>✓ Approve/reject registrations</li>
+                <li>✓ Create and manage classes</li>
+                <li>✓ Assign teachers to classes</li>
+                <li>✓ Manage users and permissions</li>
+              </ul>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="role-card teacher">
+            <mat-card-header>
+              <mat-card-title>
+                <div class="role-icon">👨‍🏫</div>
+                Teacher
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <ul class="role-features">
+                <li>✓ Create assignments with file uploads</li>
+                <li>✓ Review and grade submissions</li>
+                <li>✓ Provide feedback and marks</li>
+                <li>✓ Send class announcements</li>
+              </ul>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="role-card student">
+            <mat-card-header>
+              <mat-card-title>
+                <div class="role-icon">👨‍🎓</div>
+                Student
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <ul class="role-features">
+                <li>✓ View class assignments</li>
+                <li>✓ Submit work before deadlines</li>
+                <li>✓ Check grades and feedback</li>
+                <li>✓ Receive announcements</li>
+              </ul>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Demo Credentials -->
+      <mat-card class="demo-card">
+        <mat-card-header>
+          <mat-card-title>🚀 Demo Credentials</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="demo-grid">
+            <div class="demo-item">
+              <strong>Admin</strong>
+              <p>admin&#64;school.com</p>
+              <p>admin123</p>
+            </div>
+            <div class="demo-item">
+              <strong>Teacher</strong>
+              <p>Register & wait for</p>
+              <p>admin approval</p>
+            </div>
+            <div class="demo-item">
+              <strong>Student</strong>
+              <p>Register & wait for</p>
+              <p>admin approval</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 EduTask Manager. Complete Student Task Management System.</p>
+    </div>
+  </footer>
+</div>

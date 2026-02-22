@@ -1,0 +1,154 @@
+.file-upload-container {
+  width: 100%;
+}
+
+.upload-area {
+  position: relative;
+  border: 2px dashed #d1d5db;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #f9fafb;
+
+  &:hover {
+    border-color: #60a5fa;
+    background-color: rgba(96, 165, 250, 0.05);
+  }
+
+  &.dragging {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+  }
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.upload-icon {
+  padding: 1rem;
+  border-radius: 9999px;
+  background-color: #f3f4f6;
+  transition: background-color 0.2s;
+
+  mat-icon {
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
+    color: #6b7280;
+  }
+
+  &.dragging {
+    background-color: #dbeafe;
+
+    mat-icon {
+      color: #2563eb;
+    }
+  }
+}
+
+.upload-text {
+  .upload-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 0.25rem;
+  }
+
+  .upload-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .upload-info {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 0.5rem;
+  }
+}
+
+.preview-area {
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: #ffffff;
+}
+
+.preview-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.preview-thumbnail {
+  flex-shrink: 0;
+
+  img {
+    width: 5rem;
+    height: 5rem;
+    object-fit: cover;
+    border-radius: 0.25rem;
+    border: 1px solid #e5e7eb;
+  }
+}
+
+.preview-icon {
+  flex-shrink: 0;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.25rem;
+  border: 1px solid #e5e7eb;
+
+  mat-icon {
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+.preview-info {
+  flex: 1;
+  min-width: 0;
+
+  .file-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111827;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-type {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+
+  .change-btn {
+    margin-top: 0.5rem;
+  }
+}
+
+.remove-btn {
+  flex-shrink: 0;
+}
+
+.success-message {
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background-color: #eff6ff;
+  border-radius: 0.25rem;
+  border: 1px solid: #bfdbfe;
+
+  p {
+    font-size: 0.75rem;
+    color: #1e40af;
+    margin: 0;
+  }
+}

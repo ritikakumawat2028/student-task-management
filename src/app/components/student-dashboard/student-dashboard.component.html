@@ -1,0 +1,481 @@
+<div class="student-dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="icon-container green">
+          <mat-icon>school</mat-icon>
+        </div>
+        <div class="header-text">
+          <h1>Student Dashboard</h1>
+          <p>Welcome back, {{ currentUser?.name }}</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-button class="profile-btn" (click)="viewProfile()">
+          <mat-icon>account_circle</mat-icon>
+          Profile
+        </button>
+        <button mat-button class="logout-btn" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-content">
+          <div class="stat-text">
+            <span class="stat-label">My Class</span>
+            <span class="stat-value">{{ myClasses.length > 0 ? myClasses[0].name : 'None' }}</span>
+            <span class="stat-sublabel">{{ myClasses.length > 0 ? myClasses[0].department : '' }}</span>
+          </div>
+          <div class="stat-icon">
+            <mat-icon>menu_book</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card blue">
+        <div class="stat-content">
+          <div class="stat-text">
+            <span class="stat-label">Total Assignments</span>
+            <span class="stat-value">{{ allAssignments.length }}</span>
+          </div>
+          <div class="stat-icon">
+            <mat-icon>assignment</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card orange">
+        <div class="stat-content">
+          <div class="stat-text">
+            <span class="stat-label">Pending</span>
+            <span class="stat-value">{{ pendingAssignments.length }}</span>
+          </div>
+          <div class="stat-icon">
+            <mat-icon>schedule</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card purple">
+        <div class="stat-content">
+          <div class="stat-text">
+            <span class="stat-label">Average Grade</span>
+            <span class="stat-value">{{ getAverageGrade() }}%</span>
+          </div>
+          <div class="stat-icon">
+            <mat-icon>emoji_events</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-btn" [class.active]="activeTab === 'assignments'" (click)="onTabChange('assignments')">
+        <mat-icon>assignment</mat-icon>
+        Assignments
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'grades'" (click)="onTabChange('grades')">
+        <mat-icon>grade</mat-icon>
+        Grades
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'announcements'" (click)="onTabChange('announcements')">
+        <mat-icon>campaign</mat-icon>
+        Announcements
+        <span *ngIf="unreadAnnouncementCount > 0" class="notification-badge">{{ unreadAnnouncementCount }}</span>
+      </button>
+    </div>
+
+    <!-- Assignments Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'assignments'">
+      <div class="content-header">
+        <div>
+          <h2>My Assignments</h2>
+          <p>View and submit your assignments</p>
+        </div>
+        <mat-form-field class="search-field" appearance="outline">
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput placeholder="Search assignments..." [(ngModel)]="searchQuery">
+        </mat-form-field>
+      </div>
+
+      <div class="content-body">
+        <!-- Pending Submissions -->
+        <div *ngIf="getFilteredAssignments().length > 0" class="assignment-section">
+          <h3 class="section-header">
+            <mat-icon>schedule</mat-icon>
+            Pending Submission ({{ getFilteredAssignments().length }})
+          </h3>
+          
+          <div *ngFor="let assignment of getFilteredAssignments()" class="assignment-card pending">
+            <div class="assignment-icon">
+              <mat-icon>description</mat-icon>
+            </div>
+            <div class="assignment-info">
+              <h4>{{ assignment.title }}</h4>
+              <p class="assignment-description">{{ assignment.description }}</p>
+              <div class="assignment-meta">
+                <span class="meta-item">
+                  <mat-icon>schedule</mat-icon>
+                  Due: {{ assignment.dueDate | date:'MMM d, y h:mm a' }}
+                </span>
+                <a *ngIf="assignment.fileUrl" class="download-link" href="javascript:void(0)">
+                  <mat-icon>download</mat-icon>
+                  Download Assignment File
+                </a>
+              </div>
+            </div>
+            <button mat-raised-button color="primary" class="submit-btn" (click)="openSubmitDialog(assignment)">
+              <mat-icon>upload</mat-icon>
+              Submit
+            </button>
+          </div>
+        </div>
+
+        <!-- Submitted Assignments -->
+        <div *ngIf="submittedAssignments.length > 0" class="assignment-section">
+          <h3 class="section-header">
+            <mat-icon>check_circle</mat-icon>
+            Submitted ({{ submittedAssignments.length }})
+          </h3>
+          
+          <div *ngFor="let assignment of submittedAssignments" class="assignment-card submitted">
+            <div class="assignment-icon blue">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="assignment-info">
+              <div class="assignment-header-row">
+                <h4>{{ assignment.title }}</h4>
+                <span class="status-badge submitted">
+                  <mat-icon>check_circle</mat-icon>
+                  Submitted
+                </span>
+              </div>
+              <p class="assignment-description">{{ assignment.description }}</p>
+              <div class="assignment-meta">
+                <span class="meta-item">
+                  <mat-icon>schedule</mat-icon>
+                  Submitted on: {{ getSubmissionStatus(assignment.id)?.submittedAt | date:'MMM d, y h:mm a' }}
+                </span>
+                <span class="meta-item">
+                  <mat-icon>event</mat-icon>
+                  Due: {{ assignment.dueDate | date:'MMM d, y h:mm a' }}
+                </span>
+              </div>
+              <div *ngIf="canEditSubmission(assignment)" class="edit-notice">
+                <mat-icon>edit</mat-icon>
+                You can edit your submission until the due date
+              </div>
+            </div>
+            <button *ngIf="canEditSubmission(assignment)" mat-stroked-button color="primary" class="edit-btn" (click)="openEditDialog(assignment)">
+              <mat-icon>edit</mat-icon>
+              Edit Submission
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="getFilteredAssignments().length === 0 && submittedAssignments.length === 0" class="empty-state">
+          <mat-icon>assignment</mat-icon>
+          <p>No assignments available</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grades Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'grades'">
+      <div class="content-header">
+        <div>
+          <h2>My Grades</h2>
+          <p>View your graded assignments and feedback</p>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <div *ngIf="gradedSubmissions.length === 0" class="empty-state">
+          <mat-icon>grade</mat-icon>
+          <p>No graded assignments yet</p>
+        </div>
+
+        <div *ngFor="let submission of gradedSubmissions" class="grade-card">
+          <div class="grade-icon">
+            <mat-icon>emoji_events</mat-icon>
+          </div>
+          <div class="grade-info">
+            <div class="grade-header-row">
+              <h4>{{ getAssignmentById(submission.assignmentId)?.title }}</h4>
+              <div class="grade-badges">
+                <span class="grade-badge graded">
+                  <mat-icon>check_circle</mat-icon>
+                  Graded
+                </span>
+                <span class="grade-badge points">{{ submission.marks }} points</span>
+              </div>
+            </div>
+            <p class="grade-description">{{ getAssignmentById(submission.assignmentId)?.description }}</p>
+            
+            <div class="feedback-section">
+              <h5>Teacher's Feedback:</h5>
+              <p class="feedback-text">{{ submission.feedback }}</p>
+            </div>
+
+            <p class="submission-date">Submitted: {{ submission.submittedAt | date:'MMM d, y' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcements Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'announcements'">
+      <div class="content-header">
+        <div>
+          <h2>Announcements</h2>
+          <p>Stay updated with class announcements</p>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <div *ngIf="myAnnouncements.length === 0" class="empty-state">
+          <mat-icon>campaign</mat-icon>
+          <p>No announcements yet</p>
+        </div>
+
+        <div *ngFor="let announcement of myAnnouncements" class="announcement-card">
+          <div class="announcement-icon">
+            <mat-icon>campaign</mat-icon>
+          </div>
+          <div class="announcement-info">
+            <h4>{{ announcement.title }}</h4>
+            <p class="announcement-content">{{ announcement.content }}</p>
+            <div class="announcement-meta">
+              <span class="meta-item">
+                <mat-icon>schedule</mat-icon>
+                {{ announcement.createdAt | date:'MMM d, y h:mm a' }}
+              </span>
+              <span class="meta-item">
+                <mat-icon>person</mat-icon>
+                By: {{ getTeacherName(announcement.teacherId) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Submit Assignment Dialog -->
+<div class="dialog-overlay" *ngIf="showSubmitDialog" (click)="cancelSubmitDialog()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>Submit Assignment</h2>
+      <button mat-icon-button (click)="cancelSubmitDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <h3 class="assignment-title">{{ selectedAssignment?.title }}</h3>
+      
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Your Solution *</mat-label>
+        <textarea matInput rows="6" [(ngModel)]="submissionForm.content" placeholder="Write your answer or solution here..."></textarea>
+      </mat-form-field>
+
+      <div class="file-upload-section">
+        <label class="upload-area">
+          <input type="file" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.txt,.jpg,.png" hidden #fileInput>
+          <div class="upload-content" (click)="fileInput.click()">
+            <mat-icon>cloud_upload</mat-icon>
+            <p class="upload-title">Upload Your Solution</p>
+            <p class="upload-subtitle">Drag and drop or click to browse</p>
+            <p class="upload-hint">Maximum file size: 10MB</p>
+          </div>
+        </label>
+        <p *ngIf="selectedFile" class="selected-file">
+          <mat-icon>description</mat-icon>
+          {{ selectedFile.name }}
+        </p>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button mat-raised-button (click)="cancelSubmitDialog()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="confirmSubmitDialog()">
+        <mat-icon>upload</mat-icon>
+        Submit Assignment
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Submission Dialog -->
+<div class="dialog-overlay" *ngIf="showEditDialog" (click)="cancelEditDialog()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>Edit Submission</h2>
+      <button mat-icon-button (click)="cancelEditDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <h3 class="assignment-title">{{ selectedAssignment?.title }}</h3>
+      
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Your Solution *</mat-label>
+        <textarea matInput rows="6" [(ngModel)]="submissionForm.content" placeholder="Write your answer or solution here..."></textarea>
+      </mat-form-field>
+
+      <div class="file-upload-section">
+        <label class="upload-area">
+          <input type="file" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.txt,.jpg,.png" hidden #fileInput>
+          <div class="upload-content" (click)="fileInput.click()">
+            <mat-icon>cloud_upload</mat-icon>
+            <p class="upload-title">Upload Your Solution</p>
+            <p class="upload-subtitle">Drag and drop or click to browse</p>
+            <p class="upload-hint">Maximum file size: 10MB</p>
+          </div>
+        </label>
+        <p *ngIf="selectedFile" class="selected-file">
+          <mat-icon>description</mat-icon>
+          {{ selectedFile.name }}
+        </p>
+        <p *ngIf="submissionForm.fileUrl && !selectedFile" class="current-file">
+          <mat-icon>description</mat-icon>
+          Current file attached
+        </p>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button mat-raised-button (click)="cancelEditDialog()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="confirmEditDialog()">
+        <mat-icon>save</mat-icon>
+        Update Submission
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Dialog (same as teacher) -->
+<div class="dialog-overlay" *ngIf="showProfileDialog" (click)="cancelProfileDialog()">
+  <div class="dialog-content profile-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>My Profile</h2>
+      <button mat-icon-button (click)="cancelProfileDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="dialog-body scrollable-dialog-body">
+      <div class="profile-header-section">
+        <div class="profile-avatar-large">
+          <mat-icon>account_circle</mat-icon>
+        </div>
+        <div class="profile-header-info">
+          <h3>{{ currentUser?.name }}</h3>
+          <p class="profile-role-badge">
+            <mat-icon>school</mat-icon>
+            Student
+          </p>
+          <p class="profile-email">{{ currentUser?.email }}</p>
+        </div>
+      </div>
+
+      <div class="profile-form-section">
+        <h4 class="section-title">
+          <mat-icon>person</mat-icon>
+          Editable Information
+        </h4>
+        
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Full Name</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input matInput [(ngModel)]="profileForm.name" placeholder="Enter your name">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="profile-form-section read-only-section">
+        <h4 class="section-title">
+          <mat-icon>lock</mat-icon>
+          Profile Information (Read-Only)
+        </h4>
+        
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email Address</mat-label>
+            <mat-icon matPrefix>email</mat-icon>
+            <input matInput type="email" [(ngModel)]="profileForm.email" placeholder="Enter your email" disabled>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Roll Number</mat-label>
+            <mat-icon matPrefix>tag</mat-icon>
+            <input matInput [(ngModel)]="profileForm.rollNo" placeholder="e.g., 23bca073" disabled>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Department</mat-label>
+            <mat-icon matPrefix>business</mat-icon>
+            <input matInput [(ngModel)]="profileForm.department" placeholder="e.g., Computer Science" disabled>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="password-section">
+        <div class="password-header" (click)="togglePasswordSection()">
+          <h4 class="section-title">
+            <mat-icon>lock</mat-icon>
+            Change Password
+          </h4>
+          <mat-icon class="expand-icon" [class.expanded]="showPasswordSection">
+            {{ showPasswordSection ? 'expand_less' : 'expand_more' }}
+          </mat-icon>
+        </div>
+
+        <div class="password-form" *ngIf="showPasswordSection">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Current Password</mat-label>
+            <mat-icon matPrefix>lock_outline</mat-icon>
+            <input matInput type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="Enter current password">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>New Password</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput type="password" [(ngModel)]="passwordForm.newPassword" placeholder="Enter new password">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Confirm New Password</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Confirm new password">
+          </mat-form-field>
+
+          <button mat-raised-button color="accent" class="change-password-btn" (click)="changePassword()">
+            <mat-icon>vpn_key</mat-icon>
+            Update Password
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-footer">
+      <button mat-raised-button (click)="cancelProfileDialog()">
+        <mat-icon>close</mat-icon>
+        Cancel
+      </button>
+      <button mat-raised-button color="primary" (click)="confirmProfileDialog()">
+        <mat-icon>save</mat-icon>
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
